@@ -95,6 +95,11 @@ const OPTIONS = {
     choices: ['asc', 'desc'],
     'default': 'asc'
   },
+  'sort-albums-numbers-first': {
+    description: 'Move numbered albums first in the sort order',
+    type: 'boolean',
+    'default': false
+  },
   'sort-media-by': {
     group: 'Album options:',
     description: 'How to sort photos and videos',
@@ -106,6 +111,11 @@ const OPTIONS = {
     description: 'Media sorting direction',
     choices: ['asc', 'desc'],
     'default': 'asc'
+  },
+  'titleize-album-names': {
+    description: 'Convert folder names to human readable titles',
+    type: 'boolean',
+    'default': false
   },
 
   // ------------------------------------
@@ -247,6 +257,7 @@ exports.get = (args) => {
     sortAlbumsDirection: opts['sort-albums-direction'],
     sortMediaBy: opts['sort-media-by'],
     sortMediaDirection: opts['sort-media-direction'],
+    sortAlmbumsNumbersFirst: opts['sort-albums-numbers-first'],
     theme: opts['theme'],
     css: opts['css'],
     googleAnalytics: opts['google-analytics'],
@@ -256,11 +267,12 @@ exports.get = (args) => {
     usageStats: opts['usage-stats'],
     log: opts['log'],
     dryRun: opts['dry-run'],
-    concurrency: opts['concurrency']
+    concurrency: opts['concurrency'],
+    titleizeAlbumNames: opts['titleize-album-names']
   }
 }
 
-function replaceInArray (list, match, replacement) {
+function replaceInArray(list, match, replacement) {
   for (var i = 0; i < list.length; ++i) {
     if (list[i] === match) {
       list[i] = replacement

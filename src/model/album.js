@@ -31,7 +31,7 @@ const PREVIEW_MISSING = {
   }
 }
 
-function Album (opts) {
+function Album(opts) {
   if (typeof opts === 'string') opts = { title: opts }
   this.id = opts.id || ++index
   this.title = opts.title || ('Album ' + this.id)
@@ -47,6 +47,11 @@ function Album (opts) {
 Album.prototype.finalize = function (options, parent) {
   options = options || {}
   var albumsOutputFolder = options.albumsOutputFolder || '.'
+  if (options.titleizeAlbumNames) {
+    var s = titleize(this.title);
+    this.title = s;
+  }
+
   // calculate final file paths and URLs
   if (parent == null) {
     this.path = options.index || 'index.html'
@@ -80,8 +85,8 @@ Album.prototype.calculateStats = function () {
   var nestedFromDates = _.map(this.albums, 'stats.fromDate')
   var nestedToDates = _.map(this.albums, 'stats.toDate')
   // current level
-  var currentPhotos = _.filter(this.files, {type: 'image'}).length
-  var currentVideos = _.filter(this.files, {type: 'video'}).length
+  var currentPhotos = _.filter(this.files, { type: 'image' }).length
+  var currentVideos = _.filter(this.files, { type: 'video' }).length
   var currentFromDate = _.map(this.files, 'meta.date')
   var currentToDate = _.map(this.files, 'meta.date')
   // aggregate all stats
@@ -107,6 +112,10 @@ Album.prototype.calculateSummary = function () {
 Album.prototype.sort = function (options) {
   this.files = _.orderBy(this.files, SORT_MEDIA_BY[options.sortMediaBy], options.sortMediaDirection)
   this.albums = _.orderBy(this.albums, SORT_ALBUMS_BY[options.sortAlbumsBy], options.sortAlbumsDirection)
+  if (options.sortAlmbumsNumbersFirst) {
+    var parts = _.partition(this.albums, a => { return a.title.match(/^[\d-]+$/) })
+    this.albums = parts[0].concat(parts[1])
+  }
 }
 
 Album.prototype.pickPreviews = function () {
@@ -124,11 +133,32 @@ Album.prototype.pickPreviews = function () {
   }
 }
 
-function sanitise (filename) {
+function sanitise(filename) {
   return filename.replace(/[^a-z0-9-_]/ig, '')
 }
 
-function itemCount (count, type) {
+function titleize(str) {
+  return str
+    .replace(/([A-Z\d]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\W*[a-z]/, function (w) {
+      return w.toUpperCase();
+    })
+    .trim()
+    .split(/\s+/)
+    .map(word => {
+      //capitalize
+      return word.replace(/^\W*[a-z]/, function (w) {
+        return w.toUpperCase()
+      });
+    })
+    .join(' ')
+    ;
+}
+
+function itemCount(count, type) {
   if (count === 0) return ''
   var plural = (count > 1) ? 's' : ''
   return '' + count + ' ' + type + plural
